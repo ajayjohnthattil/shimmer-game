@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import { colors } from '../../constants';
-import { backgroundColor } from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
+import { StyleSheet, Text, View, Pressable, Alert} from 'react-native'
+import React, { useState, useEffect }  from 'react'
+import { colors, colorsToEmoji } from '../../constants';
+import * as Clipboard from 'expo-clipboard';
 
 const Stat = ({number,label})=>(
   <View style={{alignItems:"center", margin:10}}>
@@ -36,7 +36,44 @@ const GuessDistribution = () => {
   )
 };
 
-const EndScreen = ({won = false}) => {
+const EndScreen = ({won = false, rows, getCellBGColor}) => {
+  
+  
+  const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0);
+ 
+  const shareStats = () => {
+    console.log(rows);
+    const tileMap = rows.map((row,i) => row.map((cell,j) => colorsToEmoji[getCellBGColor(i,j)] ).join("")).filter((row)=> row).join('\n');
+    Clipboard.setString(tileMap);
+    Alert.alert('copied result tiles', 'share your result on social media');
+  };
+ 
+
+  useEffect (()=>{
+    const updateTimer=()=>{
+      const now = new Date();
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);
+
+      setSecondsTillTomorrow((tomorrow-now)/1000);
+
+    };
+
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  },[]);
+
+  const formatSeconds = () => {
+    let x = secondsTillTomorrow;
+    const hours = Math.floor(x/(60*60));
+    x= x - hours*60*60;
+    const minutes = Math.floor(x/(60));
+    x = x - minutes * 60;
+    const seconds = Math.floor(x%60);
+
+    return `${hours}:${minutes}:${seconds}`;
+    
+  }
+
   return (
     <View>
       <Text style={styles.title}>Good Game, Well Played.</Text>
@@ -48,6 +85,16 @@ const EndScreen = ({won = false}) => {
         <Stat number={10} label={"Max Streak"}/>
       </View>
       <GuessDistribution/>
+
+      <View style={{flexDirection:"row"}}>
+        <View style={{alignItems:"center", flex:1}}>
+          <Text style={{color:colors.lightgrey}}>Next Word</Text>
+          <Text style={{color:colors.lightgrey,fontSize:24,fontWeight:"bold"}}>{formatSeconds()}</Text>
+        </View>
+        <Pressable style={{flex:1, backgroundColor:colors.primary, borderRadius:25, alignItems:"center", justifyContent:"center"}} onPress={shareStats}>
+          <Text style={{color: colors.lightgrey, fontWeight: "bold"}}>Share</Text>
+        </Pressable>
+      </View>
       
     </View>
   )

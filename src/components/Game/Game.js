@@ -84,12 +84,12 @@ const Game = () => {
 
     const checkGameState = () =>{
         if(checkIfWon() && gameState !== 'won') { 
-            Alert.alert('hurray', 'you won', [{text:'Share', onPress: shareScore}]);
+           // Alert.alert('hurray', 'you won', [{text:'Share', onPress: shareScore}]);
             setGameState('won');
         }
     
     else if(checkIfLost() && gameState !== 'lost') {
-      Alert.alert('better luck next life');
+     // Alert.alert('better luck next life');
       setGameState('lost');
     }
   }
@@ -102,11 +102,11 @@ const Game = () => {
     return !checkIfWon() && currentRow === rows.length;
   }
 
-  const shareScore = () =>{
-    const tileMap = rows.map((row,i) => row.map((cell,j) => colorsToEmoji[getCellBGColor(i,j)] ).join("")).filter((row)=> row).join('\n');
-    Clipboard.setString(tileMap);
-    Alert.alert('copied result tiles', 'share your result on social media')
-  }
+  // const shareScore = () =>{
+  //   const tileMap = rows.map((row,i) => row.map((cell,j) => colorsToEmoji[getCellBGColor(i,j)] ).join("")).filter((row)=> row).join('\n');
+  //   Clipboard.setString(tileMap);
+  //   Alert.alert('copied result tiles', 'share your result on social media')
+  // }
 
   const onKeyPressed = (key) =>{
 
@@ -145,7 +145,7 @@ const Game = () => {
       return row===currentRow && col===currentCol;
   }
 
-  const getCellBGColor=(row,col)=>{
+  const getCellBGColor=(row, col)=>{
     const letter=rows[row][col];
     if(row>=currentRow){return colors.black;}
     if(letter===letters[col]){ return colors.primary;}
@@ -167,7 +167,7 @@ const Game = () => {
 
   if(gameState !== 'playing')
   {
-    return (<EndScreen won={gameState==='won'}/>)
+    return (<EndScreen won={gameState==='won'} rows={rows} getCellBGColor={getCellBGColor}/>)
   }
 
   return(
