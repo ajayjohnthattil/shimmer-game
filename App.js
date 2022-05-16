@@ -1,6 +1,6 @@
 import { StyleSheet, Text, SafeAreaView} from 'react-native';
 import {colors} from './src/constants'
-import Game from "./src/components/Game/Game"
+import Game from "./src/components/Game"
 
 
 export default function App(){
