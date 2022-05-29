@@ -14,5 +14,5 @@ export const copyArray = (arr) =>{
 export const getDayKey = () => {
   const d = new Date;
   const year = d.getFullYear();
-  return `day-${getDayOfTheYear()}-${year}`;
+  return `day-${getDayOfTheYear()}-${year}`; 
 }

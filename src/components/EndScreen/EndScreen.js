@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, Pressable, Alert} from 'react-native'
 import React, { useState, useEffect }  from 'react'
 import { colors, colorsToEmoji } from '../../constants';
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stat = ({number,label})=>(
   <View style={{alignItems:"center", margin:10}}>
@@ -10,7 +11,7 @@ const Stat = ({number,label})=>(
   </View>
 );
 
-const GuessDistriLine =({position,amount, percentage})=>{
+const GuessDistriLine =({position,amount, percentage })=>{
   return(
     <View style={{flexDirection:"row", alignItems:"center", width:"100%"}}>
       <Text style={{color:colors.lightgrey, marginRight:10}}>{position}</Text>
@@ -21,17 +22,18 @@ const GuessDistriLine =({position,amount, percentage})=>{
   )
 };
 
-const GuessDistribution = () => {
+const GuessDistribution = ({distribution , played}) => {
+  if(!distribution) return null;
   return(
   <>
   <Text style={styles.subtitle}>Guess Distribution</Text>
-  <GuessDistriLine position={1} amount={0} percentage={0}/>
-  <GuessDistriLine position={2} amount={1} percentage={10}/>
-  <GuessDistriLine position={3} amount={4} percentage={40}/>
-  <GuessDistriLine position={4} amount={0} percentage={0}/>
-  <GuessDistriLine position={5} amount={4} percentage={40}/>
-  <GuessDistriLine position={6} amount={1} percentage={10}/>
-  <GuessDistriLine position={7} amount={0} percentage={0}/>
+  <GuessDistriLine position={1} amount={distribution[1]} percentage={distribution[1]/played*100}/>
+  <GuessDistriLine position={2} amount={distribution[2]} percentage={distribution[2]/played*100}/>
+  <GuessDistriLine position={3} amount={distribution[3]} percentage={distribution[3]/played*100}/>
+  <GuessDistriLine position={4} amount={distribution[4]} percentage={distribution[4]/played*100}/>
+  <GuessDistriLine position={5} amount={distribution[5]} percentage={distribution[5]/played*100}/>
+  <GuessDistriLine position={6} amount={distribution[6]} percentage={distribution[6]/played*100}/>
+  <GuessDistriLine position={7} amount={distribution[7]} percentage={distribution[7]/played*100}/>
   </>
   )
 };
@@ -40,6 +42,15 @@ const EndScreen = ({won = false, rows, getCellBGColor}) => {
   
   
   const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0);
+
+  const [played,setPlayed] = useState(0);
+  const [winRate,setWinRate] = useState(0);
+  const [currentStreak,setCurrentStreak] = useState(0);
+  const [maxStreak,setMaxStreak] = useState(0);
+
+  //guess distribution
+  const [distribution,setDistribution] = useState([0,0,0,0,0,0,0,0])
+  
  
   const shareStats = () => {
     console.log(rows);
@@ -48,6 +59,10 @@ const EndScreen = ({won = false, rows, getCellBGColor}) => {
     Alert.alert('copied result tiles', 'share your result on social media');
   };
  
+
+  useEffect(()=>{
+    readState();
+  },[]);
 
   useEffect (()=>{
     const updateTimer=()=>{
@@ -61,6 +76,59 @@ const EndScreen = ({won = false, rows, getCellBGColor}) => {
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   },[]);
+
+  const readState = async() => {
+    const dataString = await AsyncStorage.getItem("@game");
+    let data;
+     try{
+       data = JSON.parse(dataString);
+       //console.log(data);
+       
+     } catch(e){
+       console.log(e);
+    }
+
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+
+    setPlayed(keys.length); //no. of entries in data will be the no. of games played
+    
+    const numberOfWins = values.filter((game) => game.gameState === 'won').length; // filter out the 'won' gameStates to know how many were won
+    setWinRate(Math.floor(numberOfWins/keys.length *100)); //calculate win%
+
+    let streakCount = 0;
+    
+    let prevKey = 0;
+
+    let dist = [0,0,0,0,0,0,0,0];
+
+    //setting stats which require looping through data 
+    // currentStreak, maxStreak, distribution
+    keys.forEach(key => {
+
+      const day = parseInt(key.split('-')[1]);
+      
+      if(data[key].gameState === 'won' && prevKey + 1 === day){
+        streakCount+=1;
+        if(maxStreak<streakCount) setMaxStreak(streakCount);
+      }
+      else if (data[key].gameState === 'won'){
+
+        streakCount = 1;
+        
+        dist[data[key].currentRow] +=1;
+      }
+      else streakCount = 0;
+      
+      prevKey = day;
+    })
+      setCurrentStreak(streakCount) 
+      setDistribution(dist);
+      console.log(dist)
+       
+       //setLoaded(true);
+  }
+
 
   const formatSeconds = () => {
     let x = secondsTillTomorrow;
@@ -79,12 +147,12 @@ const EndScreen = ({won = false, rows, getCellBGColor}) => {
       <Text style={styles.title}>Good Game, Well Played.</Text>
       <Text style={styles.subtitle}>STATISTICS</Text>
       <View style= {{flexDirection:"row",marginBottom:10}}>
-        <Stat number={10} label={"played"}/>
-        <Stat number={100} label={"WIN %"}/>
-        <Stat number={10} label={"Current Streak"}/>
-        <Stat number={10} label={"Max Streak"}/>
+        <Stat number={played} label={"played"}/>
+        <Stat number={winRate} label={"WIN %"}/>
+        <Stat number={currentStreak} label={"Current Streak"}/>
+        <Stat number={maxStreak} label={"Max Streak"}/>
       </View>
-      <GuessDistribution/>
+      <GuessDistribution distribution={distribution} played = {played}/>
 
       <View style={{flexDirection:"row"}}>
         <View style={{alignItems:"center", flex:1}}>

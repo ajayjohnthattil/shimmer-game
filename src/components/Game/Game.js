@@ -17,6 +17,7 @@ const Game = () => {
 
   //AsyncStorage.removeItem("@game");
     const word = words[dayOfTheYear].toLowerCase();
+    //console.log(word);
     const letters = word.split("");
   
     const [rows,setRows]= useState(
@@ -61,6 +62,7 @@ const Game = () => {
 
         const dataString = JSON.stringify(existingData);
         await AsyncStorage.setItem("@game",dataString);
+        
       } catch(e){
         console.log("failed to setItem data to asyncstorage",e)
       }
