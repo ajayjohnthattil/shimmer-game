@@ -8,6 +8,7 @@ import words from '../../words';
 import { copyArray, getDayKey, getDayOfTheYear } from '../../utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EndScreen from '../EndScreen'
+import Animated, {SlideInLeft,FlipInEasyX, FlipInEasyY, ZoomIn} from 'react-native-reanimated';
 
 const NUMBER_OF_TRIES=7;
 const dayOfTheYear = getDayOfTheYear();
@@ -154,6 +155,15 @@ const Game = () => {
     if(letters.includes(letter)){ return colors.secondary;}
     return colors.darkgrey;
   }
+  // const getCellBGStyle=(i,j)=>
+  //   [
+  //     styles.cell,
+  //     { 
+  //       borderColor: isCellActive(i,j)?colors.grey:colors.darkgrey,
+  //       backgroundColor: getCellBGColor(i,j)
+  //     },
+  //   ]
+  
 
   const getLettersWithColor = (color) =>{
     return rows.flatMap((row,i) => 
@@ -169,7 +179,7 @@ const Game = () => {
 
   if(gameState !== 'playing')
   {
-    return (<EndScreen won={gameState==='won'} rows={rows} getCellBGColor={getCellBGColor}/>)
+    return (<EndScreen word={word} rows={rows} getCellBGColor={getCellBGColor}/>)
   }
 
   return(
@@ -178,13 +188,18 @@ const Game = () => {
        <ScrollView style={styles.map}>
         {
           rows.map((row,i) => (
-            <View 
+            <Animated.View 
+            entering={SlideInLeft.delay(i*80)}
             key = {`row-${i}`}
             style={styles.row} 
             >
             {row.map((cell,j) => (
-              <View 
-              key={`cell-${i}-${j}`}  
+              <>
+              {
+              i<currentRow &&
+              (<Animated.View 
+              entering={FlipInEasyY.delay(j* 100)}
+              key={`cell-prev-${i}-${j}`}  
               style={[
                 styles.cell,
                 { 
@@ -194,9 +209,43 @@ const Game = () => {
               ]}  
               >
                 <Text style={styles.cellText}>{cell.toUpperCase()}</Text>
-              </View>
+              </Animated.View>)
+              }
+              {
+              i===currentRow && !!cell &&
+              (<Animated.View 
+              entering={ZoomIn}
+              key={`cell-active-${i}-${j}`}  
+              style={[
+                styles.cell,
+                { 
+                  borderColor: isCellActive(i,j)?colors.grey:colors.darkgrey,
+                  backgroundColor: getCellBGColor(i,j)
+                },
+              ]}  
+              >
+                <Text style={styles.cellText}>{cell.toUpperCase()}</Text>
+              </Animated.View>)
+              }
+              {
+              !cell &&
+              (<Animated.View 
+              entering={FlipInEasyY.delay(100)}
+              key={`cell-blank-${i}-${j}`}  
+              style={[
+                styles.cell,
+                { 
+                  borderColor: isCellActive(i,j)?colors.grey:colors.darkgrey,
+                  backgroundColor: getCellBGColor(i,j)
+                },
+              ]}  
+              >
+                <Text style={styles.cellText}>{cell.toUpperCase()}</Text>
+              </Animated.View>)
+              }
+              </>
             ))}   
-            </View>
+            </Animated.View>
         ))}
         </ScrollView>
         <Keyboard 

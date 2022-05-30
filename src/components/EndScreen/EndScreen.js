@@ -27,6 +27,7 @@ const GuessDistribution = ({distribution , played}) => {
   return(
   <>
   <Text style={styles.subtitle}>Guess Distribution</Text>
+  <View style={{ width:"90%"}}>
   <GuessDistriLine position={1} amount={distribution[1]} percentage={distribution[1]/played*100}/>
   <GuessDistriLine position={2} amount={distribution[2]} percentage={distribution[2]/played*100}/>
   <GuessDistriLine position={3} amount={distribution[3]} percentage={distribution[3]/played*100}/>
@@ -34,11 +35,12 @@ const GuessDistribution = ({distribution , played}) => {
   <GuessDistriLine position={5} amount={distribution[5]} percentage={distribution[5]/played*100}/>
   <GuessDistriLine position={6} amount={distribution[6]} percentage={distribution[6]/played*100}/>
   <GuessDistriLine position={7} amount={distribution[7]} percentage={distribution[7]/played*100}/>
+  </View>
   </>
   )
 };
 
-const EndScreen = ({won = false, rows, getCellBGColor}) => {
+const EndScreen = ({word, rows, getCellBGColor}) => {
   
   
   const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0);
@@ -115,12 +117,17 @@ const EndScreen = ({won = false, rows, getCellBGColor}) => {
       else if (data[key].gameState === 'won'){
 
         streakCount = 1;
+        if(maxStreak<streakCount) setMaxStreak(streakCount);
         
-        dist[data[key].currentRow] +=1;
+       // dist[data[key].currentRow] +=1;
       }
       else streakCount = 0;
       
       prevKey = day;
+    })
+
+    keys.forEach(key=>{
+      if(data[key].gameState==='won') dist[data[key].currentRow] +=1;
     })
       setCurrentStreak(streakCount) 
       setDistribution(dist);
@@ -143,8 +150,9 @@ const EndScreen = ({won = false, rows, getCellBGColor}) => {
   }
 
   return (
-    <View>
+    <View style={{flex:1}}>
       <Text style={styles.title}>Good Game, Well Played.</Text>
+      <Text style={[styles.title,{color:colors.primary}]}>"{word.toUpperCase()}"</Text>
       <Text style={styles.subtitle}>STATISTICS</Text>
       <View style= {{flexDirection:"row",marginBottom:10}}>
         <Stat number={played} label={"played"}/>
