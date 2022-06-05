@@ -5,10 +5,12 @@ import Keyboard from '../Keyboard';
 import {CLEAR, ENTER, colors, colorsToEmoji} from '../../constants'
 import * as Clipboard from 'expo-clipboard';
 import words from '../../words';
+import wordList from '../../wordList';
 import { copyArray, getDayKey, getDayOfTheYear } from '../../utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EndScreen from '../EndScreen'
 import Animated, {SlideInLeft,FlipInEasyX, FlipInEasyY, ZoomIn} from 'react-native-reanimated';
+import FlashMessage, { showMessage } from 'react-native-flash-message';
 
 const NUMBER_OF_TRIES=7;
 const dayOfTheYear = getDayOfTheYear();
@@ -16,7 +18,7 @@ const dayKey = getDayKey();
 
 const Game = () => {
 
-  //AsyncStorage.removeItem("@game");
+    //AsyncStorage.removeItem("@game");
     const word = words[dayOfTheYear].toLowerCase();
     //console.log(word);
     const letters = word.split("");
@@ -105,6 +107,24 @@ const Game = () => {
     return !checkIfWon() && currentRow === rows.length;
   }
 
+  const checkIfValidWord = () =>{
+
+    const x = rows[currentRow].join('');
+    
+    const found = wordList.includes(x);
+
+    if(!found) {
+      showMessage({
+        message: "Invalid Word !!",
+        type: "default",
+        backgroundColor: "white",
+        color: "#606060", // text color
+      });
+    }
+
+    return found
+  }
+
   // const shareScore = () =>{
   //   const tileMap = rows.map((row,i) => row.map((cell,j) => colorsToEmoji[getCellBGColor(i,j)] ).join("")).filter((row)=> row).join('\n');
   //   Clipboard.setString(tileMap);
@@ -116,6 +136,7 @@ const Game = () => {
     if(gameState !== 'playing'){
       return;
     }
+
     const updatedRows = copyArray(rows);
 
     if(key===CLEAR){
@@ -129,7 +150,7 @@ const Game = () => {
     }
 
     if(key===ENTER){
-      if(currentCol===rows[0].length){
+      if(currentCol===rows[0].length && checkIfValidWord()){
         setCurrentRow(currentRow+1);
         setCurrentCol(0);  
       }
@@ -199,7 +220,7 @@ const Game = () => {
               i<currentRow &&
               (<Animated.View 
               entering={FlipInEasyY.delay(j* 100)}
-              key={`cell-prev-${i}-${j}`}  
+              key={`cell-${i}-${j}`}  
               style={[
                 styles.cell,
                 { 
@@ -254,6 +275,7 @@ const Game = () => {
             yellowCaps={yellowCaps}
             greyCaps={greyCaps}
         />
+        <FlashMessage position="center" />
     </>
   )
 };
